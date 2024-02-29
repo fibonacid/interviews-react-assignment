@@ -52,7 +52,7 @@ export const Products = ({
           };
         }
         return product;
-      }),
+      })
     );
     fetch("/cart", {
       method: "POST",
@@ -73,7 +73,7 @@ export const Products = ({
               };
             }
             return product;
-          }),
+          })
         );
         onCartChange(cart);
       }
@@ -82,9 +82,21 @@ export const Products = ({
 
   return (
     <Box overflow="scroll" height="100%">
-      <Grid container spacing={2} p={2}>
+      <Grid
+        container
+        spacing={2}
+        p={2}
+        component="ul"
+        aria-label="Product List"
+        data-testid="product-list"
+      >
         {products.map((product) => (
-          <Grid item xs={4}>
+          <Grid
+            item
+            xs={4}
+            component="li"
+            aria-labelledby={`product-list-item-${product.id}`}
+          >
             {/* Do not remove this */}
             <HeavyComponent />
             <Card key={product.id} style={{ width: "100%" }}>
@@ -94,7 +106,12 @@ export const Products = ({
                 image={product.imageUrl}
               />
               <CardContent>
-                <Typography gutterBottom variant="h6" component="div">
+                <Typography
+                  gutterBottom
+                  variant="h6"
+                  component="h2"
+                  id={`product-list-item-${product.id}`}
+                >
                   {product.name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

@@ -1,5 +1,28 @@
-import { test } from "@playwright/test";
+import { Locator, Page, expect, test } from "@playwright/test";
 
-test("page loads", async ({ page }) => {
-  await page.goto("/");
+class Products {
+  public readonly list: Locator;
+
+  constructor(private readonly page: Page) {
+    this.list = this.page.getByRole("list", { name: /product list/i });
+  }
+
+  async getListItems() {
+    // use this after query is finished
+    return this.list.getByRole("listitem").all();
+  }
+}
+
+test.describe("when products load", () => {
+  test.beforeEach(async ({ page }) => {
+    const responsePromise = page.waitForResponse("/products?limit=200");
+    await page.goto("/");
+    await responsePromise; // wait for query to finish
+  });
+
+  test("shows 200 products", async ({ page }) => {
+    const products = new Products(page);
+    const items = await products.getListItems();
+    expect(items).toHaveLength(200);
+  });
 });
