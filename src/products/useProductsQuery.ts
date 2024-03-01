@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { getProducts } from "./getProducts";
 import { Product } from "./types";
 
-export function useProducts() {
+export function useProductsQuery() {
   const mountedRef = useRef(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [data, setData] = useState<Product[]>([]);
   const [error, setError] = useState<unknown>();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -14,7 +14,7 @@ export function useProducts() {
 
     getProducts()
       .then((products) => {
-        setProducts(products);
+        setData(products);
       })
       .catch((error) => {
         setError(error);
@@ -24,5 +24,5 @@ export function useProducts() {
       });
   }, []);
 
-  return { products, error, isLoading };
+  return { data, error, isLoading };
 }

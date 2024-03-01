@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { getProducts } from "./getProducts";
-import { useProducts } from "./useProducts";
+import { useProductsQuery } from "./useProductsQuery";
 import { Product } from "./types";
 
 const products: Product[] = [
@@ -25,29 +25,29 @@ vi.mock("./getProducts", () => {
 const mockGetProducts = vi.mocked(getProducts);
 
 test("should call getProducts once", async () => {
-  renderHook(() => useProducts());
+  renderHook(() => useProductsQuery());
   expect(mockGetProducts).toHaveBeenCalledTimes(1);
 });
 
 test("should return products", async () => {
   mockGetProducts.mockResolvedValueOnce(products);
-  const { result } = renderHook(() => useProducts());
+  const { result } = renderHook(() => useProductsQuery());
   await waitFor(() =>
-    expect(result.current).toEqual(expect.objectContaining({ products }))
+    expect(result.current).toEqual(expect.objectContaining({ data: products }))
   );
 });
 
 test("should return an error when request fails", async () => {
   const error = new Error("Request failed");
   mockGetProducts.mockRejectedValueOnce(error);
-  const { result } = renderHook(() => useProducts());
+  const { result } = renderHook(() => useProductsQuery());
   await waitFor(() =>
     expect(result.current).toEqual(expect.objectContaining({ error }))
   );
 });
 
 test("should track loading state", async () => {
-  const { result } = renderHook(() => useProducts());
+  const { result } = renderHook(() => useProductsQuery());
 
   await waitFor(() => {
     expect(result.current).toEqual(
