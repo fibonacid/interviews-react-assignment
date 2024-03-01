@@ -10,7 +10,7 @@ vi.mock("./getProducts", () => {
 });
 
 test("should call getProducts once", async () => {
-  renderHook(() => useProducts());
   const mockGetProducts = vi.mocked(getProducts);
+  renderHook(() => useProducts());
   expect(mockGetProducts).toHaveBeenCalledTimes(1);
 });
