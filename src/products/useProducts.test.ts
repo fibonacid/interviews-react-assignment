@@ -5,7 +5,7 @@ import { useProducts } from "./useProducts";
 
 vi.mock("./getProducts", () => {
   return {
-    getProducts: vi.fn(),
+    getProducts: vi.fn(() => Promise.resolve([])),
   };
 });
 
@@ -17,7 +17,18 @@ test("should call getProducts once", async () => {
 });
 
 test("should return products", async () => {
-  mockGetProducts.mockResolvedValue([]);
   const { result } = renderHook(() => useProducts());
   await waitFor(() => expect(result.current).toEqual({ products: [] }));
+});
+
+test("should return an error when request fails", async () => {
+  const error = new Error("Request failed");
+  mockGetProducts.mockRejectedValueOnce(error);
+  const { result } = renderHook(() => useProducts());
+  await waitFor(() =>
+    expect(result.current).toEqual({
+      error,
+      products: [],
+    })
+  );
 });

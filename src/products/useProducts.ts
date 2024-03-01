@@ -1,14 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getProducts } from "./getProducts";
 
 export function useProducts() {
   const mountedRef = useRef(false);
+  const [error, setError] = useState<unknown>();
 
   useEffect(() => {
     if (mountedRef.current) return;
     mountedRef.current = true;
-    getProducts();
+    getProducts().catch((error) => {
+      setError(error);
+    });
   }, []);
 
-  return { products: [] };
+  return { products: [], error };
 }
