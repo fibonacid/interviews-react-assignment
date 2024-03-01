@@ -17,7 +17,7 @@ const products: Product[] = [
   {
     name: "Test Product 2",
     category: "",
-    id: 0,
+    id: 1,
     imageUrl: "",
     itemInCart: 0,
     loading: false,
@@ -26,7 +26,7 @@ const products: Product[] = [
   {
     name: "Test Product 3",
     category: "",
-    id: 0,
+    id: 2,
     imageUrl: "https://example.com/image.jpg",
     itemInCart: 0,
     loading: false,
