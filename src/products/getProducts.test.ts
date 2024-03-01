@@ -1,8 +1,16 @@
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { test, afterAll, afterEach, beforeAll, describe, expect } from "vitest";
-import { getProducts } from "./getProducts";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { Product } from "../Products";
+import { getProducts } from "./getProducts";
 
 const products: Product[] = [
   {
@@ -40,7 +48,7 @@ describe("when request is successful", () => {
   // Reset handlers after each test `important for test isolation`
   afterEach(() => server.resetHandlers());
 
-  test("should return products", async () => {
+  test("should return the products", async () => {
     const result = await getProducts();
     expect(result).toEqual(products);
   });
@@ -63,5 +71,21 @@ describe("when request fails", () => {
 
   test("should throw when request fails", async () => {
     expect(getProducts()).rejects.toThrow();
+  });
+});
+
+describe("when limit is set", () => {
+  test("should call the api with the limit", async () => {
+    const fetchSpy = vi.spyOn(window, "fetch");
+    getProducts({ limit: 5 });
+    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining("limit=5"));
+  });
+});
+
+describe("when limit is not set", () => {
+  test("should call the api without the limit", async () => {
+    const fetchSpy = vi.spyOn(window, "fetch");
+    getProducts();
+    expect(fetchSpy).toHaveBeenCalledWith(expect.not.stringContaining("limit"));
   });
 });
