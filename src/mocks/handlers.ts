@@ -48,11 +48,11 @@ function computeCart() {
     });
   const totalPrice = detailedCart.reduce(
     (acc, { product, quantity }) => acc + product.price * quantity,
-    0,
+    0
   );
   const totalItems = detailedCart.reduce(
     (acc, { quantity }) => acc + quantity,
-    0,
+    0
   );
   return HttpResponse.json({
     items: detailedCart,
@@ -90,7 +90,7 @@ export const handlers = [
     const realLimit = parseInt(limit, 10) || 10;
     const pageList = filteredProducts.slice(
       realPage * realLimit,
-      (realPage + 1) * realLimit,
+      (realPage + 1) * realLimit
     );
 
     return HttpResponse.json({
@@ -107,7 +107,7 @@ export const handlers = [
       const currentQuantity = cart[productId] || 0;
       cart[productId] = currentQuantity + quantity;
       return computeCart();
-    },
+    }
   ),
   http.get("/cart", async () => {
     await delay();
@@ -120,7 +120,7 @@ export const handlers = [
 
     return new HttpResponse(
       undefined,
-      Math.random() > 0.5 ? { status: 200 } : { status: 500 },
+      Math.random() > 0.5 ? { status: 200 } : { status: 500 }
     );
   }),
 ];

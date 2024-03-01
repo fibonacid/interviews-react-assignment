@@ -2,10 +2,23 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { getProducts } from "./getProducts";
 import { useProducts } from "./useProducts";
+import { Product } from "./types";
+
+const products: Product[] = [
+  {
+    id: 1,
+    name: "Product 1",
+    price: 100,
+    category: "Category 1",
+    imageUrl: "https://via.placeholder.com/150?text=Product+1",
+    itemInCart: 0,
+    loading: false,
+  },
+];
 
 vi.mock("./getProducts", () => {
   return {
-    getProducts: vi.fn(() => Promise.resolve([])),
+    getProducts: vi.fn(() => Promise.resolve(products)),
   };
 });
 
@@ -17,9 +30,10 @@ test("should call getProducts once", async () => {
 });
 
 test("should return products", async () => {
+  mockGetProducts.mockResolvedValueOnce(products);
   const { result } = renderHook(() => useProducts());
   await waitFor(() =>
-    expect(result.current).toEqual(expect.objectContaining({ products: [] }))
+    expect(result.current).toEqual(expect.objectContaining({ products }))
   );
 });
 
