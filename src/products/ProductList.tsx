@@ -1,10 +1,8 @@
 import { Box, Grid } from "@mui/material";
-import { useState } from "react";
-import { ProductCard } from "./ProductCard.tsx";
 import { Product } from "../Products.tsx";
+import { ProductCard } from "./ProductCard.tsx";
 
-export function ProductList() {
-  const [products] = useState<Product[]>([]);
+export function ProductList({ products }: { products: Product[] }) {
   return (
     <Box overflow="scroll" height="100%">
       <Grid
@@ -15,7 +13,7 @@ export function ProductList() {
         aria-label="Product List"
       >
         {products.map((product) => (
-          <Grid item xs={4}>
+          <Grid key={product.id} item xs={4} component="li">
             <ProductCard product={product} />
           </Grid>
         ))}
