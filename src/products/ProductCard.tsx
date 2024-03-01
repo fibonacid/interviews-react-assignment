@@ -15,7 +15,12 @@ import {
 export function ProductCard({ product }: { product: Product }) {
   return (
     <Card style={{ width: "100%" }}>
-      <CardMedia component="img" height="150" image={product.imageUrl} />
+      <CardMedia
+        component="img"
+        height="150"
+        image={product.imageUrl}
+        alt={product.imageAlt}
+      />
       <CardContent>
         <Typography gutterBottom variant="h6">
           {product.name}
