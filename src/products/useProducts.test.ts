@@ -18,7 +18,9 @@ test("should call getProducts once", async () => {
 
 test("should return products", async () => {
   const { result } = renderHook(() => useProducts());
-  await waitFor(() => expect(result.current).toEqual({ products: [] }));
+  await waitFor(() =>
+    expect(result.current).toEqual(expect.objectContaining({ products: [] }))
+  );
 });
 
 test("should return an error when request fails", async () => {
@@ -26,9 +28,22 @@ test("should return an error when request fails", async () => {
   mockGetProducts.mockRejectedValueOnce(error);
   const { result } = renderHook(() => useProducts());
   await waitFor(() =>
-    expect(result.current).toEqual({
-      error,
-      products: [],
-    })
+    expect(result.current).toEqual(expect.objectContaining({ error }))
+  );
+});
+
+test("should track loading state", async () => {
+  const { result } = renderHook(() => useProducts());
+
+  await waitFor(() => {
+    expect(result.current).toEqual(
+      expect.objectContaining({ isLoading: true })
+    );
+  });
+
+  await waitFor(() =>
+    expect(result.current).toEqual(
+      expect.objectContaining({ isLoading: false })
+    )
   );
 });
