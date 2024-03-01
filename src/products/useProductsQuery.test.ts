@@ -30,10 +30,22 @@ test("should call getProducts once", async () => {
 });
 
 test("should return products", async () => {
-  mockGetProducts.mockResolvedValueOnce(products);
+  mockGetProducts.mockResolvedValueOnce({
+    products,
+    total: products.length,
+    hasMore: false,
+  });
   const { result } = renderHook(() => useProductsQuery());
   await waitFor(() =>
-    expect(result.current).toEqual(expect.objectContaining({ data: products }))
+    expect(result.current).toEqual(
+      expect.objectContaining({
+        data: {
+          products,
+          total: products.length,
+          hasMore: false,
+        },
+      })
+    )
   );
 });
 
@@ -60,4 +72,9 @@ test("should track loading state", async () => {
       expect.objectContaining({ isLoading: false })
     )
   );
+});
+
+test("should pass limit to getProducts", async () => {
+  renderHook(() => useProductsQuery({ limit: 10 }));
+  expect(mockGetProducts).toHaveBeenCalledWith({ limit: 10 });
 });

@@ -36,7 +36,9 @@ const products: Product[] = [
 describe("when request is successful", () => {
   const server = setupServer(
     http.get("/products", () => {
-      return HttpResponse.json(products);
+      return HttpResponse.json({
+        products,
+      });
     })
   );
   // Start server before all tests

@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { getProducts } from "./getProducts";
-import { Product } from "./types";
+import { GetProductsResult, getProducts } from "./getProducts";
 
-export function useProductsQuery() {
+export function useProductsQuery({ limit }: { limit?: number } = {}) {
   const mountedRef = useRef(false);
-  const [data, setData] = useState<Product[]>([]);
+  const [data, setData] = useState<GetProductsResult>();
   const [error, setError] = useState<unknown>();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -12,7 +11,7 @@ export function useProductsQuery() {
     if (mountedRef.current) return;
     mountedRef.current = true;
 
-    getProducts()
+    getProducts({ limit })
       .then((products) => {
         setData(products);
       })
@@ -22,6 +21,8 @@ export function useProductsQuery() {
       .finally(() => {
         setIsLoading(false);
       });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { data, error, isLoading };
