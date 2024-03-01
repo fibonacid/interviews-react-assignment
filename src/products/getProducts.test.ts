@@ -41,8 +41,8 @@ describe("when request is successful", () => {
   afterEach(() => server.resetHandlers());
 
   test("should return products", async () => {
-    const products = await getProducts();
-    expect(products).toEqual(products);
+    const result = await getProducts();
+    expect(result).toEqual(products);
   });
 });
 
