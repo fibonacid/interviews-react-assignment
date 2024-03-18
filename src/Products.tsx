@@ -84,7 +84,7 @@ export const Products = ({
     lastPageIndex.current = pageIndex;
 
     const url = new URL("products", window.location.origin);
-    url.searchParams.append("limit", "2");
+    url.searchParams.append("limit", "10");
     url.searchParams.append("page", pageIndex.toString());
 
     fetch(url)
