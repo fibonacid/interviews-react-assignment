@@ -37,6 +37,7 @@ export const Products = ({
 }) => {
   // Products is a 2D array, each page is an array of products
   const [products, setProducts] = useState<Product[][]>([]);
+  console.log("Products", products);
 
   // We keep track to the page index so that we can increment it and fetch more products
   const [pageIndex, setPageIndex] = useState(0);
@@ -88,26 +89,24 @@ export const Products = ({
 
     fetch(url)
       .then((response) => response.json())
-      .then((data) =>
-        setProducts((products) => [...products, ...data.products])
-      );
+      .then((data) => setProducts((products) => [...products, data.products]));
 
     // Re-run when pageIndex changes
   }, [pageIndex]);
 
   function addToCart(productId: number, quantity: number) {
     setProducts(
-      products.map((page, index) => {
-        if (index === pageIndex) {
-          // We keep the prev pages intact, while updating the current page
-          return page.map((product) => {
-            if (product.id === productId) {
-              return { ...product, loading: true };
-            }
-            return product;
-          });
-        }
-        return page;
+      products.map((page) => {
+        const productIndex = page.findIndex(
+          (product) => product.id === productId
+        );
+        if (productIndex === -1) return page;
+        const newPage = [...page];
+        newPage[productIndex] = {
+          ...newPage[productIndex],
+          loading: true,
+        };
+        return newPage;
       })
     );
 
