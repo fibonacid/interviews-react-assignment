@@ -11,7 +11,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HeavyComponent } from "./HeavyComponent.tsx";
 
 export type Product = {
@@ -94,50 +94,65 @@ export const Products = ({
     // Re-run when pageIndex changes
   }, [pageIndex]);
 
-  function addToCart(productId: number, quantity: number) {
-    setProducts(
-      products.map((page) => {
-        const productIndex = page.findIndex(
-          (product) => product.id === productId
-        );
-        if (productIndex === -1) return page;
-        const newPage = [...page];
-        newPage[productIndex] = {
-          ...newPage[productIndex],
-          loading: true,
-        };
-        return newPage;
-      })
-    );
+  const addToCart = useCallback(
+    async (productId: number, quantity: number) => {
+      // Save the current product data
+      const product = allProducts.find((p) => p.id === productId);
+      if (!product) return console.error("Product not found");
 
-    fetch("/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ productId, quantity }),
-    }).then(async (response) => {
-      if (response.ok) {
-        const cart = await response.json();
-        setProducts(
-          products.map((page) => {
-            return page.map((product) => {
-              // Same as above, but we also update the itemInCart
-              if (product.id === productId) {
-                return {
-                  ...product,
-                  itemInCart: (product.itemInCart || 0) + quantity,
-                  loading: false,
-                };
-              }
-              return product;
-            });
+      const productPageIndex = products.findIndex((page) =>
+        page.some((p) => p.id === productId)
+      );
+      if (productPageIndex === -1) return console.error("Product not found");
+
+      // Update local state
+      const newProducts = [...products];
+      newProducts[productPageIndex] = newProducts[productPageIndex].map((p) => {
+        if (p.id === productId) {
+          return {
+            ...p,
+            itemInCart: (p.itemInCart || 0) + quantity, // Optimistic update
+            loading: true,
+          };
+        }
+        return p;
+      });
+      setProducts(newProducts);
+
+      // Update the cart
+      const response = await fetch("/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId, quantity }),
+      });
+      if (!response.ok) {
+        console.error("Failed to update cart");
+        setProducts([...products]); // Revert the local state
+      }
+
+      // Update the cart
+      const cart: Cart = await response.json();
+      onCartChange(cart);
+
+      // Stop loading state and keep optimistic update
+      setProducts((products) => {
+        return products.map((page) =>
+          page.map((p) => {
+            if (p.id === productId) {
+              return {
+                ...p,
+                loading: false,
+              };
+            }
+            return p;
           })
         );
-        onCartChange(cart);
-      }
-    });
-  }
+      });
+    },
+    [products, allProducts, onCartChange]
+  );
 
   return (
     <Box overflow="scroll" height="100%">
