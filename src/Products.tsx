@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import {
   Box,
   Card,
   CardActions,
   CardContent,
   CardMedia,
+  CircularProgress,
   Grid,
   IconButton,
   Typography,
-  CircularProgress,
 } from "@mui/material";
-import RemoveIcon from "@mui/icons-material/Remove";
-import AddIcon from "@mui/icons-material/Add";
+import { useEffect, useRef, useState } from "react";
 import { HeavyComponent } from "./HeavyComponent.tsx";
 
 export type Product = {
@@ -29,31 +29,88 @@ export type Cart = {
   totalPrice: number;
   totalItems: number;
 };
+
 export const Products = ({
   onCartChange,
 }: {
   onCartChange: (cart: Cart) => void;
 }) => {
-  const [products, setProducts] = useState<Product[]>([]);
+  // Products is a 2D array, each page is an array of products
+  const [products, setProducts] = useState<Product[][]>([]);
+
+  // We keep track to the page index so that we can increment it and fetch more products
+  const [pageIndex, setPageIndex] = useState(0);
+  const lastPageIndex = useRef<number>();
+
+  // We concatenate all the pages into a single array
+  // This _might_ benefit from memoization
+  const allProducts = products.flat();
+
+  // We use an intersection observer to detect when the user has scrolled to the bottom
+  const intersectingElementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/products?limit=200")
-      .then((response) => response.json())
-      .then((data) => setProducts(data.products));
+    if (!intersectingElementRef.current) {
+      // This should never happen in practice. If it does, you
+      // probably removed the div from the returned JSX
+      throw new Error("Intersection element not found");
+    }
+
+    // Increment the page index when the element is intersecting
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPageIndex((pageIndex) => pageIndex + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+    // Put current value in scope to avoid stale closure
+    const element = intersectingElementRef.current;
+    // This is important because `observer.unobserve` needs to refer to the same instance
+    observer.observe(element);
+
+    return () => {
+      // Clean up the observer
+      observer.unobserve(element);
+    };
   }, []);
+
+  useEffect(() => {
+    // Prevent duplicate calls. In production i would use TanstackQuery
+    // because there are too many edge cases to handle.
+    if (lastPageIndex.current === pageIndex) return;
+    lastPageIndex.current = pageIndex;
+
+    const url = new URL("products", window.location.origin);
+    url.searchParams.append("limit", "2");
+    url.searchParams.append("page", pageIndex.toString());
+
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) =>
+        setProducts((products) => [...products, ...data.products])
+      );
+
+    // Re-run when pageIndex changes
+  }, [pageIndex]);
 
   function addToCart(productId: number, quantity: number) {
     setProducts(
-      products.map((product) => {
-        if (product.id === productId) {
-          return {
-            ...product,
-            loading: true,
-          };
+      products.map((page, index) => {
+        if (index === pageIndex) {
+          // We keep the prev pages intact, while updating the current page
+          return page.map((product) => {
+            if (product.id === productId) {
+              return { ...product, loading: true };
+            }
+            return product;
+          });
         }
-        return product;
+        return page;
       })
     );
+
     fetch("/cart", {
       method: "POST",
       headers: {
@@ -64,15 +121,18 @@ export const Products = ({
       if (response.ok) {
         const cart = await response.json();
         setProducts(
-          products.map((product) => {
-            if (product.id === productId) {
-              return {
-                ...product,
-                itemInCart: (product.itemInCart || 0) + quantity,
-                loading: false,
-              };
-            }
-            return product;
+          products.map((page) => {
+            return page.map((product) => {
+              // Same as above, but we also update the itemInCart
+              if (product.id === productId) {
+                return {
+                  ...product,
+                  itemInCart: (product.itemInCart || 0) + quantity,
+                  loading: false,
+                };
+              }
+              return product;
+            });
           })
         );
         onCartChange(cart);
@@ -82,21 +142,9 @@ export const Products = ({
 
   return (
     <Box overflow="scroll" height="100%">
-      <Grid
-        container
-        spacing={2}
-        p={2}
-        component="ul"
-        aria-label="Product List"
-        data-testid="product-list"
-      >
-        {products.map((product) => (
-          <Grid
-            item
-            xs={4}
-            component="li"
-            aria-labelledby={`product-list-item-${product.id}`}
-          >
+      <Grid container spacing={2} p={2}>
+        {allProducts.map((product) => (
+          <Grid item xs={4}>
             {/* Do not remove this */}
             <HeavyComponent />
             <Card key={product.id} style={{ width: "100%" }}>
@@ -166,6 +214,7 @@ export const Products = ({
           </Grid>
         ))}
       </Grid>
+      <div ref={intersectingElementRef} />
     </Box>
   );
 };
