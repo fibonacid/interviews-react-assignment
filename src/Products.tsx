@@ -46,6 +46,36 @@ export const Products = ({
   // This _might_ benefit from memoization
   const allProducts = products.flat();
 
+  // We use an intersection observer to detect when the user has scrolled to the bottom
+  const intersectingElementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!intersectingElementRef.current) {
+      // This should never happen in practice. If it does, you
+      // probably removed the div from the returned JSX
+      throw new Error("Intersection element not found");
+    }
+
+    // Increment the page index when the element is intersecting
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPageIndex((pageIndex) => pageIndex + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+    // Put current value in scope to avoid stale closure
+    const element = intersectingElementRef.current;
+    // This is important because `observer.unobserve` needs to refer to the same instance
+    observer.observe(element);
+
+    return () => {
+      // Clean up the observer
+      observer.unobserve(element);
+    };
+  }, []);
+
   useEffect(() => {
     // Prevent duplicate calls. In production i would use TanstackQuery
     // because there are too many edge cases to handle.
@@ -112,8 +142,6 @@ export const Products = ({
 
   return (
     <Box overflow="scroll" height="100%">
-      {/* We add this button to set the next page, we will use the IntersectionObserver api eventually */}
-      <button onClick={() => setPageIndex(pageIndex + 1)}>Next</button>
       <Grid container spacing={2} p={2}>
         {allProducts.map((product) => (
           <Grid item xs={4}>
@@ -181,6 +209,7 @@ export const Products = ({
           </Grid>
         ))}
       </Grid>
+      <div ref={intersectingElementRef} />
     </Box>
   );
 };
