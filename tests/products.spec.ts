@@ -26,3 +26,22 @@ test.describe("when products load", () => {
     expect(items).toHaveLength(10);
   });
 });
+
+test.describe("when scolling", () => {
+  test.beforeEach(async ({ page }) => {
+    const responsePromise = page.waitForResponse("/products?limit=10&page=0");
+    await page.goto("/");
+    await responsePromise; // wait for query to finish
+  });
+
+  test("loads more products", async ({ page }) => {
+    const products = new Products(page);
+    const responsePromise = page.waitForResponse("/products?limit=10&page=1");
+    await page.evaluate(() => {
+      window.scrollBy(0, 1000);
+    });
+    await responsePromise; // wait for query to finish
+    const items = await products.getListItems();
+    expect(items).toHaveLength(20);
+  });
+});
