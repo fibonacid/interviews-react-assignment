@@ -78,3 +78,30 @@ test("should pass limit to getProducts", async () => {
   renderHook(() => useProductsQuery({ limit: 10 }));
   expect(mockGetProducts).toHaveBeenCalledWith({ limit: 10 });
 });
+
+test("should reset data when limit changes", async () => {
+  const { result, rerender } = renderHook(
+    ({ limit }) => useProductsQuery({ limit }),
+    {
+      initialProps: { limit: 10 },
+    }
+  );
+
+  await waitFor(() =>
+    expect(result.current).toEqual(
+      expect.objectContaining({
+        data: undefined,
+      })
+    )
+  );
+
+  rerender({ limit: 20 });
+
+  await waitFor(() =>
+    expect(result.current).toEqual(
+      expect.objectContaining({
+        data: undefined,
+      })
+    )
+  );
+});
