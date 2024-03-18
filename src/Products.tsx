@@ -141,9 +141,15 @@ export const Products = ({
 
   return (
     <Box overflow="scroll" height="100%">
-      <Grid container spacing={2} p={2}>
+      <Grid
+        container
+        spacing={2}
+        p={2}
+        component="ul"
+        aria-label="Product List"
+      >
         {allProducts.map((product) => (
-          <Grid item xs={4}>
+          <Grid item xs={4} component="li">
             {/* Do not remove this */}
             <HeavyComponent />
             <Card key={product.id} style={{ width: "100%" }}>
